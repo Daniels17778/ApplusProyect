@@ -1,13 +1,614 @@
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
+
+<!doctype html>
+<html lang="es">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
-    <title>Applus Norcontrol </title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Applus+ | Control de anticipos</title>
+    <link rel="stylesheet" href="{% static 'css/style2.css' %}">
+
 </head>
+
 <body>
-    <h1>APPLUS NORCONTROL</h1>
+    <div class="app">
+        <aside class="side">
+            <div class="brand"><b><span>A</span>pplus<span class="plus">+</span></b><small>CONTROL DE ANTICIPOS Y
+                    LEGALIZACIONES</small></div>
+            <div class="mt">Principal</div>
+            <div class="nav">
+                <button class="active" onclick="showPage('resumen',this)"><span class="ico">▦</span>Resumen
+                    general</button>
+                <button onclick="showPage('anticipos',this)"><span class="ico">▤</span>Anticipos</button>
+            </div>
+            <div class="mt">Información</div>
+            <div class="nav">
+                <button onclick="showPage('archivos',this)"><span class="ico">□</span>Archivos</button>
+                <button onclick="showPage('avisos',this)"><span class="ico">!</span>Avisos</button>
+            </div>
+            <div class="user"><b>Usuario administrativo</b><br>Control y seguimiento</div>
+        </aside>
+
+        <main>
+            <section id="resumen" class="page active">
+                <div class="top">
+                    <div>
+                        <h1>Resumen general</h1>
+                        <div class="sub">Control sencillo de anticipos, legalizaciones y valores reconocidos.</div>
+                    </div>
+                    <div class="actions"><button class="btn" onclick="showPage('anticipos')">Buscar
+                            anticipo</button><button class="btn primary" onclick="openModal('nuevo')">+ Registrar
+                            anticipo</button></div>
+                </div>
+                <div class="banner"><b>Importante:</b> SALT no se reemplaza. Allí se siguen cargando las facturas y
+                    legalizaciones. Este sistema organiza el control, los cálculos, los documentos y el historial — y
+                    vincula cada legalización con el código del anticipo al que pertenece.</div>
+                <div class="card period">
+                    <div class="field"><label>Año</label><select class="select" id="year" onchange="updatePeriod()">
+                            <option>2026</option>
+                        </select></div>
+                    <div class="field"><label>Mes</label><select class="select" id="month" onchange="updatePeriod()">
+                            <option value="all">Todos los meses</option>
+                            <option value="07">Julio</option>
+                            <option value="06">Junio</option>
+                        </select></div><button class="btn" onclick="resetPeriod()">Limpiar</button>
+                    <div class="period-note" id="periodNote"></div>
+                </div>
+                <div class="kpis">
+                    <div class="card kpi"><label>Total anticipado</label>
+                        <div id="k1" class="value">$0</div>
+                        <div class="hint">Dinero entregado</div>
+                    </div>
+                    <div class="card kpi"><label>Presentado para legalizar</label>
+                        <div id="k2" class="value blue">$0</div>
+                        <div class="hint">Soportes presentados en SALT</div>
+                    </div>
+                    <div class="card kpi"><label>Legalizado contablemente</label>
+                        <div id="k3" class="value green">$0</div>
+                        <div class="hint">Realmente reconocido</div>
+                    </div>
+                    <div class="card kpi"><label>Devuelto / no reconocido</label>
+                        <div id="k4" class="value red">$0</div>
+                        <div class="hint">Requiere seguimiento</div>
+                    </div>
+                    <div class="card kpi"><label>Pendiente por legalizar</label>
+                        <div id="k5" class="value yellow">$0</div>
+                        <div class="hint">Saldo de anticipos</div>
+                    </div>
+                </div>
+                <div class="two">
+                    <div class="card panel">
+                        <div class="section-head">
+                            <h2>Resumen financiero</h2><span class="link" onclick="resetPeriod()">Ver acumulado</span>
+                        </div>
+                        <div class="finance">
+                            <div class="fhead"><span>Total anticipado</span><b id="f1">$0</b></div>
+                            <div class="barbg">
+                                <div class="bar" style="width:100%"></div>
+                            </div>
+                        </div>
+                        <div class="finance">
+                            <div class="fhead"><span>Presentado para legalización</span><b id="f2">$0</b></div>
+                            <div class="barbg">
+                                <div id="b2" class="bar"></div>
+                            </div>
+                        </div>
+                        <div class="finance">
+                            <div class="fhead"><span>Reconocido por contabilidad</span><b id="f3">$0</b></div>
+                            <div class="barbg">
+                                <div id="b3" class="bar"></div>
+                            </div>
+                        </div>
+                        <div class="finance">
+                            <div class="fhead"><span>Devuelto / no reconocido</span><b id="f4">$0</b></div>
+                            <div class="barbg">
+                                <div id="b4" class="bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card panel">
+                        <div class="section-head">
+                            <h2>Estado actual</h2><span class="link" onclick="showPage('anticipos')">Ver detalle</span>
+                        </div>
+                        <div id="estadoActual"></div>
+                    </div>
+                </div>
+                <div style="margin-top:16px">
+                    <div class="section-head">
+                        <h2>Últimos movimientos</h2><span class="link" onclick="showPage('anticipos')">Ver todos</span>
+                    </div>
+                    <div class="card tablewrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Anticipo</th>
+                                    <th>Legalización</th>
+                                    <th>Fecha</th>
+                                    <th>Anticipo</th>
+                                    <th>Presentado</th>
+                                    <th>Reconocido</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="movTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="anticipos" class="page">
+                <div class="top">
+                    <div>
+                        <h1>Anticipos y legalizaciones</h1>
+                        <div class="sub">Cada legalización queda vinculada al código de su anticipo. Un solo lugar para
+                            ver todo el ciclo.</div>
+                    </div>
+                    <div class="actions"><button class="btn" onclick="openModal('legalizar')">+ Registrar
+                            legalización</button><button class="btn primary" onclick="openModal('nuevo')">+ Registrar
+                            anticipo</button></div>
+                </div>
+                <div class="card search"><b style="font-size:13px">Buscar un anticipo</b>
+                    <div class="sub">Busque por código de anticipo, código de legalización o responsable.</div>
+                    <div class="searchrow"><input id="antSearch" class="input"
+                            placeholder="Ej. ANT-2026-00125 o LEG-2026-00078" oninput="renderAnticiposTable()"><button
+                            class="btn primary" onclick="renderAnticiposTable()">Buscar</button></div>
+                </div>
+                <div class="card tablewrap">
+                    <div class="filters">
+                        <div class="field"><label>Desde</label><input id="fDesde" class="input" type="date"
+                                onchange="renderAnticiposTable()"></div>
+                        <div class="field"><label>Hasta</label><input id="fHasta" class="input" type="date"
+                                onchange="renderAnticiposTable()"></div>
+                        <div class="field"><label>Estado</label><select id="fEstado" class="select"
+                                onchange="renderAnticiposTable()">
+                                <option value="">Todos los estados</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="revision">En revisión SALT</option>
+                                <option value="parcial">Parcial</option>
+                                <option value="aprobada">Legalizado</option>
+                                <option value="rechazada">Rechazada</option>
+                            </select></div>
+                        <button class="btn"
+                            onclick="document.getElementById('fDesde').value='';document.getElementById('fHasta').value='';document.getElementById('fEstado').value='';document.getElementById('antSearch').value='';renderAnticiposTable()">Limpiar
+                            filtros</button>
+                    </div>
+                    <table id="antTable">
+                        <thead>
+                            <tr>
+                                <th>Anticipo</th>
+                                <th>Legalización</th>
+                                <th>Fecha</th>
+                                <th>Responsable</th>
+                                <th>Anticipo</th>
+                                <th>Presentado</th>
+                                <th>Reconocido</th>
+                                <th>Saldo</th>
+                                <th>Estado</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="antTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="ficha" class="page">
+                <div class="top">
+                    <div>
+                        <h1 id="fCodigo">—</h1>
+                        <div class="sub" id="fConcepto">Ficha completa: anticipo, legalización, facturas, documentos,
+                            reclamos e historial.</div>
+                    </div><button class="btn" onclick="showPage('anticipos')">← Volver</button>
+                </div>
+                <div class="detail-grid" id="fDetailGrid"></div>
+                <div class="card panel">
+                    <div class="tabs"><button class="tab active" onclick="tab('ftres',this)">Resumen</button><button
+                            class="tab" onclick="tab('ffac',this)">Facturas</button><button class="tab"
+                            onclick="tab('farc',this)">Archivos</button><button class="tab"
+                            onclick="tab('fhis',this)">Historial</button><button class="tab"
+                            onclick="tab('frec',this)">Reclamos</button></div>
+                    <div id="ftres" class="tabcontent active"></div>
+                    <div id="ffac" class="tabcontent"></div>
+                    <div id="farc" class="tabcontent"></div>
+                    <div id="fhis" class="tabcontent"></div>
+                    <div id="frec" class="tabcontent"></div>
+                </div>
+            </section>
+
+            <section id="archivos" class="page">
+                <div class="top">
+                    <div>
+                        <h1>Archivos</h1>
+                        <div class="sub">Los Excel, PDF y correos quedan relacionados con su anticipo o legalización —
+                            no reemplazan SALT, son el respaldo del control.</div>
+                    </div><button class="btn primary" onclick="openModal('archivo')">+ Subir archivo</button>
+                </div>
+                <div class="card panel">
+                    <div class="section-head">
+                        <h2>Archivos recientes</h2>
+                    </div>
+                    <div class="files" id="archivosGrid"></div>
+                </div>
+            </section>
+
+            <section id="avisos" class="page">
+                <div class="top">
+                    <div>
+                        <h1>Avisos</h1>
+                        <div class="sub">Generados automáticamente a partir del estado de cada legalización.</div>
+                    </div>
+                </div>
+                <div class="card panel">
+                    <div class="tabs"><button class="tab active"
+                            onclick="tab('avNoti',this)">Notificaciones</button><button class="tab"
+                            onclick="tab('avHist',this)">Historial completo</button></div>
+                    <div id="avNoti" class="tabcontent active"></div>
+                    <div id="avHist" class="tabcontent">
+                        <div class="timeline" id="histGlobal"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="nuevo" class="modal">
+        <div class="modalbox">
+            <div class="section-head">
+                <div>
+                    <h2 style="margin:0;font-size:17px">Registrar anticipo</h2>
+                    <div class="sub">Los datos se registran una sola vez.</div>
+                </div><button class="close" onclick="closeModal('nuevo')">×</button>
+            </div>
+            <div class="form">
+                <div><label>Código del anticipo</label><input id="naCodigo" placeholder="ANT-2026-00126"></div>
+                <div><label>Fecha</label><input id="naFecha" type="date"></div>
+                <div><label>Responsable</label><input id="naResponsable" placeholder="Nombre"></div>
+                <div><label>Valor</label><input id="naValor" placeholder="0" inputmode="numeric"></div>
+                <div class="full"><label>Concepto</label><textarea id="naConcepto" rows="3"
+                        placeholder="Motivo del anticipo"></textarea></div>
+                <div class="full"><label>Soporte (opcional)</label>
+                    <div class="drop">Arrastre aquí el archivo o selecciónelo</div>
+                </div>
+            </div>
+            <div style="text-align:right;margin-top:15px"><button class="btn"
+                    onclick="closeModal('nuevo')">Cancelar</button> <button class="btn primary"
+                    onclick="guardarAnticipo()">Guardar anticipo</button></div>
+        </div>
+    </div>
+
+    <div id="legalizar" class="modal">
+        <div class="modalbox">
+            <div class="section-head">
+                <div>
+                    <h2 style="margin:0;font-size:17px">Registrar legalización</h2>
+                    <div class="sub">Se vincula directamente al código del anticipo.</div>
+                </div><button class="close" onclick="closeModal('legalizar')">×</button>
+            </div>
+            <div class="form">
+                <div class="full"><label>Anticipo relacionado</label><select id="lgAnticipo"></select></div>
+                <div><label>Código de la legalización</label><input id="lgCodigo" placeholder="LEG-2026-00079"></div>
+                <div><label>Fecha presentado en SALT</label><input id="lgFecha" type="date"></div>
+                <div><label>Valor presentado</label><input id="lgPresentado" placeholder="0" inputmode="numeric"></div>
+                <div><label>Resultado</label><select id="lgEstado" onchange="toggleLegFields()">
+                        <option value="revision">En espera de respuesta de SALT</option>
+                        <option value="aprobada">Aprobada (todo reconocido)</option>
+                        <option value="parcial">Aprobada parcialmente</option>
+                        <option value="rechazada">Rechazada</option>
+                    </select></div>
+                <div id="lgReconWrap" style="display:none"><label>Valor reconocido por contabilidad</label><input
+                        id="lgReconocido" placeholder="0" inputmode="numeric"></div>
+                <div id="lgMotivoWrap" class="full" style="display:none"><label>Motivo del valor devuelto</label><select
+                        id="lgMotivo">
+                        <option>Factura no válida / soporte incompleto</option>
+                        <option>Cuenta bancaria inconsistente</option>
+                        <option>Concepto no corresponde al anticipo</option>
+                        <option>Otro</option>
+                    </select></div>
+                <div class="formnote full"><span class="checkline"><input type="checkbox" disabled> Detectar
+                        automáticamente desde el correo de aprobación (Outlook)</span><br>Por ahora este resultado se
+                    registra manualmente, igual que hoy lo hacen en el Excel de seguimiento. Más adelante esto podría
+                    automatizarse leyendo el correo de respuesta en Outlook, para no duplicar el trabajo que ya hacen.
+                </div>
+            </div>
+            <div style="text-align:right;margin-top:15px"><button class="btn"
+                    onclick="closeModal('legalizar')">Cancelar</button> <button class="btn primary"
+                    onclick="guardarLegalizacion()">Guardar legalización</button></div>
+        </div>
+    </div>
+
+    <div id="archivo" class="modal">
+        <div class="modalbox">
+            <div class="section-head">
+                <h2 style="margin:0;font-size:17px">Guardar archivo</h2><button class="close"
+                    onclick="closeModal('archivo')">×</button>
+            </div>
+            <div class="form">
+                <div class="full"><label>Relacionado con (código de anticipo)</label><select id="faAnticipo"></select>
+                </div>
+                <div><label>Tipo</label><select id="faTipo">
+                        <option>Excel de legalización</option>
+                        <option>PDF de facturas / recibos</option>
+                        <option>Correo</option>
+                        <option>Otro soporte</option>
+                    </select></div>
+                <div class="full"><label>Archivo</label>
+                    <div class="drop">Arrastre aquí el archivo o selecciónelo</div>
+                </div>
+            </div>
+            <div style="text-align:right;margin-top:15px"><button class="btn"
+                    onclick="closeModal('archivo')">Cancelar</button> <button class="btn primary"
+                    onclick="guardarArchivo()">Guardar archivo</button></div>
+        </div>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script>
+        /* ---------- datos (demo en memoria, no hay backend aún) ---------- */
+        let ANTICIPOS = [
+            {
+                codigo: 'ANT-2026-00125', fecha: '2026-07-17', responsable: 'Diego Orozco', concepto: 'Viáticos visita técnica Cali', valor: 7600000,
+                legalizacion: {
+                    codigo: 'LEG-2026-00078', fechaPresentado: '2026-07-28', presentado: 4300000, estado: 'parcial', fechaResultado: '2026-07-29', reconocido: 3800000, devuelto: 500000, motivo: 'Factura no válida / soporte incompleto', origen: 'manual',
+                    facturas: [{ doc: 'FAC-001', valor: 1200000, estado: 'aceptada' }, { doc: 'FAC-002', valor: 800000, estado: 'aceptada' }, { doc: 'FAC-003', valor: 500000, estado: 'devuelta', motivo: 'Soporte no válido' }, { doc: 'FAC-004', valor: 1800000, estado: 'aceptada' }],
+                    archivos: [{ icon: '📊', nombre: 'Excel legalización.xlsx', tipo: 'Archivo de trabajo' }, { icon: '📕', nombre: 'Facturas y recibos.pdf', tipo: 'Soportes escaneados' }, { icon: '📧', nombre: 'Correo aprobación.pdf', tipo: 'Respuesta recibida' }],
+                    reclamos: [{ codigo: 'REC-2026-00012', factura: 'FAC-003', valor: 500000, motivo: 'Factura devuelta', estado: 'En revisión' }]
+                }
+            },
+            {
+                codigo: 'ANT-2026-00124', fecha: '2026-07-14', responsable: 'María López', concepto: 'Logística evento Medellín', valor: 3200000,
+                legalizacion: {
+                    codigo: 'LEG-2026-00077', fechaPresentado: '2026-07-26', presentado: 3200000, estado: 'aprobada', fechaResultado: '2026-07-27', reconocido: 3200000, devuelto: 0, motivo: '', origen: 'manual',
+                    facturas: [{ doc: 'FAC-010', valor: 3200000, estado: 'aceptada' }],
+                    archivos: [{ icon: '📊', nombre: 'Excel legalización.xlsx', tipo: 'Archivo de trabajo' }, { icon: '📕', nombre: 'Facturas y recibos.pdf', tipo: 'Soportes escaneados' }],
+                    reclamos: []
+                }
+            },
+            { codigo: 'ANT-2026-00123', fecha: '2026-07-10', responsable: 'Carlos Pérez', concepto: 'Insumos laboratorio', valor: 5800000, legalizacion: null },
+            {
+                codigo: 'ANT-2026-00122', fecha: '2026-07-05', responsable: 'Laura Ríos', concepto: 'Viáticos auditoría Barranquilla', valor: 4100000,
+                legalizacion: {
+                    codigo: 'LEG-2026-00076', fechaPresentado: '2026-07-20', presentado: 4100000, estado: 'revision', fechaResultado: null, reconocido: 0, devuelto: 0, motivo: '', origen: 'manual',
+                    facturas: [{ doc: 'FAC-030', valor: 4100000, estado: 'en revisión' }],
+                    archivos: [{ icon: '📊', nombre: 'Excel legalización.xlsx', tipo: 'Archivo de trabajo' }],
+                    reclamos: []
+                }
+            },
+            {
+                codigo: 'ANT-2026-00121', fecha: '2026-06-22', responsable: 'Diego Orozco', concepto: 'Capacitación Bogotá', valor: 2500000,
+                legalizacion: {
+                    codigo: 'LEG-2026-00070', fechaPresentado: '2026-06-29', presentado: 2500000, estado: 'rechazada', fechaResultado: '2026-06-30', reconocido: 0, devuelto: 2500000, motivo: 'Cuenta bancaria inconsistente', origen: 'manual',
+                    facturas: [{ doc: 'FAC-050', valor: 2500000, estado: 'devuelta', motivo: 'Cuenta inconsistente' }],
+                    archivos: [{ icon: '📊', nombre: 'Excel legalización.xlsx', tipo: 'Archivo de trabajo' }, { icon: '📧', nombre: 'Correo rechazo.pdf', tipo: 'Respuesta recibida' }],
+                    reclamos: [{ codigo: 'REC-2026-00009', factura: 'FAC-050', valor: 2500000, motivo: 'Cuenta inconsistente', estado: 'Abierto' }]
+                }
+            },
+            {
+                codigo: 'ANT-2026-00120', fecha: '2026-06-15', responsable: 'María López', concepto: 'Mantenimiento de equipos', valor: 1800000,
+                legalizacion: {
+                    codigo: 'LEG-2026-00069', fechaPresentado: '2026-06-24', presentado: 1800000, estado: 'aprobada', fechaResultado: '2026-06-25', reconocido: 1800000, devuelto: 0, motivo: '', origen: 'manual',
+                    facturas: [{ doc: 'FAC-045', valor: 1800000, estado: 'aceptada' }],
+                    archivos: [{ icon: '📊', nombre: 'Excel legalización.xlsx', tipo: 'Archivo de trabajo' }, { icon: '📕', nombre: 'Facturas y recibos.pdf', tipo: 'Soportes escaneados' }],
+                    reclamos: []
+                }
+            }
+        ];
+        let fichaActual = null;
+
+        /* ---------- utilidades ---------- */
+        const money = n => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0);
+        const soloNum = s => Number(String(s || '0').replace(/[^\d]/g, '')) || 0;
+        const fmtFecha = iso => { if (!iso) return '—'; const [y, m, d] = iso.split('-'); return d + '/' + m + '/' + y };
+        const reconocido = a => a.legalizacion ? (a.legalizacion.reconocido || 0) : 0;
+        const presentado = a => a.legalizacion ? (a.legalizacion.presentado || 0) : 0;
+        const devuelto = a => a.legalizacion ? (a.legalizacion.devuelto || 0) : 0;
+        const saldo = a => a.valor - reconocido(a);
+
+        function estadoInfo(a) {
+            if (!a.legalizacion) return { text: 'Pendiente', cls: 'b', key: 'pendiente' };
+            const L = a.legalizacion;
+            if (L.estado === 'revision') return { text: 'En revisión SALT', cls: 'b', key: 'revision' };
+            if (L.estado === 'rechazada') return { text: 'Rechazada', cls: 'r', key: 'rechazada' };
+            if (L.estado === 'parcial') return { text: 'Parcial', cls: 'y', key: 'parcial' };
+            if (L.estado === 'aprobada') {
+                if (L.presentado < a.valor) return { text: 'Aprobada · saldo sin presentar', cls: 'y', key: 'aprobada' };
+                return { text: 'Legalizado', cls: 'g', key: 'aprobada' };
+            }
+            return { text: '—', cls: 'b', key: '' };
+        }
+
+        /* ---------- navegación ---------- */
+        function showPage(id, btn) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active')); if (btn) btn.classList.add('active'); scrollTo(0, 0) }
+        function tab(id, btn) { const wrap = btn.closest('.card'); wrap.querySelectorAll('.tabcontent').forEach(x => x.classList.remove('active')); wrap.querySelector('#' + id).classList.add('active'); wrap.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); btn.classList.add('active') }
+        function openModal(id) { if (id === 'legalizar') fillLegalizarSelect(); if (id === 'archivo') fillArchivoSelect(); document.getElementById(id).classList.add('show') }
+        function closeModal(id) { document.getElementById(id).classList.remove('show') }
+        function toast(t) { let x = document.getElementById('toast'); x.textContent = t; x.style.display = 'block'; clearTimeout(window._toastT); window._toastT = setTimeout(() => x.style.display = 'none', 3200) }
+
+        /* ---------- resumen ---------- */
+        function updatePeriod() {
+            const y = document.getElementById('year').value, m = document.getElementById('month').value;
+            let list = ANTICIPOS.filter(a => a.fecha.startsWith(y) && (m === 'all' || a.fecha.slice(5, 7) === m));
+            document.getElementById('periodNote').textContent = 'Mostrando ' + (m === 'all' ? 'todo ' + y : ({ '07': 'julio', '06': 'junio' }[m]) + ' de ' + y) + ' · ' + list.length + ' anticipo(s)';
+            const tot = list.reduce((s, a) => s + a.valor, 0), pres = list.reduce((s, a) => s + presentado(a), 0), rec = list.reduce((s, a) => s + reconocido(a), 0), dev = list.reduce((s, a) => s + devuelto(a), 0), pend = tot - rec;
+            k1.textContent = money(tot); k2.textContent = money(pres); k3.textContent = money(rec); k4.textContent = money(dev); k5.textContent = money(Math.max(0, pend));
+            f1.textContent = money(tot); f2.textContent = money(pres); f3.textContent = money(rec); f4.textContent = money(dev);
+            b2.style.width = (tot ? pres / tot * 100 : 0) + '%'; b3.style.width = (tot ? rec / tot * 100 : 0) + '%'; b4.style.width = (tot ? dev / tot * 100 : 0) + '%';
+
+            const pendientes = list.filter(a => !a.legalizacion).length;
+            const revision = list.filter(a => a.legalizacion && a.legalizacion.estado === 'revision').length;
+            const cerradas = list.filter(a => a.legalizacion && a.legalizacion.estado === 'aprobada' && a.legalizacion.presentado === a.valor).length;
+            const devueltas = list.filter(a => a.legalizacion && devuelto(a) > 0).length;
+            document.getElementById('estadoActual').innerHTML = `
+ <div class="notice"><i class="dot b"></i><div><strong>${pendientes} sin legalización presentada</strong><p>Aún no se sube nada a SALT.</p></div></div>
+ <div class="notice"><i class="dot b"></i><div><strong>${revision} en espera de respuesta</strong><p>Ya fueron cargadas en SALT.</p></div></div>
+ <div class="notice"><i class="dot g"></i><div><strong>${cerradas} legalizaciones cerradas</strong><p>Sin saldo pendiente.</p></div></div>
+ <div class="notice"><i class="dot r"></i><div><strong>${devueltas} con valores devueltos</strong><p>Requieren seguimiento o reclamo.</p></div></div>`;
+
+            const recientes = [...list].sort((x, y) => y.fecha.localeCompare(x.fecha)).slice(0, 5);
+            document.getElementById('movTable').innerHTML = recientes.map(a => {
+                const e = estadoInfo(a);
+                return `<tr><td><b>${a.codigo}</b></td><td>${a.legalizacion ? a.legalizacion.codigo : '—'}</td><td>${fmtFecha(a.fecha)}</td><td>${money(a.valor)}</td><td>${money(presentado(a))}</td><td>${money(reconocido(a))}</td><td><span class="badge ${e.cls}">${e.text}</span></td></tr>`;
+            }).join('') || `<tr><td colspan="7" class="empty">Sin movimientos en el período.</td></tr>`;
+        }
+        function resetPeriod() { document.getElementById('year').value = '2026'; document.getElementById('month').value = 'all'; updatePeriod() }
+
+        /* ---------- anticipos (tabla unificada) ---------- */
+        function renderAnticiposTable() {
+            const q = (document.getElementById('antSearch').value || '').toLowerCase();
+            const desde = document.getElementById('fDesde').value, hasta = document.getElementById('fHasta').value, estadoF = document.getElementById('fEstado').value;
+            let list = ANTICIPOS.filter(a => {
+                const texto = (a.codigo + ' ' + a.responsable + ' ' + (a.legalizacion ? a.legalizacion.codigo : '')).toLowerCase();
+                if (q && !texto.includes(q)) return false;
+                if (desde && a.fecha < desde) return false;
+                if (hasta && a.fecha > hasta) return false;
+                if (estadoF && estadoInfo(a).key !== estadoF) return false;
+                return true;
+            }).sort((x, y) => y.fecha.localeCompare(x.fecha));
+            document.getElementById('antTableBody').innerHTML = list.map(a => {
+                const e = estadoInfo(a);
+                return `<tr><td><b>${a.codigo}</b></td><td>${a.legalizacion ? a.legalizacion.codigo : '<span class="pill">sin legalizar</span>'}</td><td>${fmtFecha(a.fecha)}</td><td>${a.responsable}</td><td>${money(a.valor)}</td><td>${money(presentado(a))}</td><td class="green">${money(reconocido(a))}</td><td class="yellow">${money(saldo(a))}</td><td><span class="badge ${e.cls}">${e.text}</span></td><td><button class="btn" onclick="renderFicha('${a.codigo}')">Ver ficha</button></td></tr>`;
+            }).join('') || `<tr><td colspan="10" class="empty">No hay anticipos que coincidan con los filtros.</td></tr>`;
+        }
+
+        /* ---------- ficha ---------- */
+        function renderFicha(codigo) {
+            const a = ANTICIPOS.find(x => x.codigo === codigo); if (!a) return;
+            fichaActual = codigo;
+            document.getElementById('fCodigo').textContent = a.codigo;
+            document.getElementById('fConcepto').textContent = a.concepto + ' — Responsable: ' + a.responsable;
+            const L = a.legalizacion, e = estadoInfo(a);
+            document.getElementById('fDetailGrid').innerHTML = `
+ <div class="detail"><small>Fecha</small><b>${fmtFecha(a.fecha)}</b></div>
+ <div class="detail"><small>Responsable</small><b>${a.responsable}</b></div>
+ <div class="detail"><small>Anticipo</small><b>${money(a.valor)}</b></div>
+ <div class="detail"><small>Presentado</small><b>${money(presentado(a))}</b></div>
+ <div class="detail"><small>Reconocido</small><b class="green">${money(reconocido(a))}</b></div>
+ <div class="detail"><small>Saldo</small><b class="yellow">${money(saldo(a))}</b></div>`;
+
+            document.getElementById('ftres').innerHTML = `<div class="two" style="margin:0">
+ <div><h3 style="font-size:12px">Resultado de la legalización</h3><table>
+ <tr><td>Valor del anticipo</td><td><b>${money(a.valor)}</b></td></tr>
+ <tr><td>Presentado en SALT</td><td><b>${money(presentado(a))}</b></td></tr>
+ <tr><td>Reconocido por contabilidad</td><td><b class="green">${money(reconocido(a))}</b></td></tr>
+ <tr><td>Devuelto / no reconocido</td><td><b class="red">${money(devuelto(a))}</b></td></tr>
+ <tr><td>Saldo pendiente del anticipo</td><td><b class="yellow">${money(saldo(a))}</b></td></tr>
+ </table></div>
+ <div><h3 style="font-size:12px">Estado</h3><p><span class="badge ${e.cls}">${e.text}</span></p>
+ ${L ? `<p class="sub">Vinculado a la legalización <b>${L.codigo}</b>, presentada el ${fmtFecha(L.fechaPresentado)}.</p>${L.motivo ? `<p class="sub"><b>Motivo del valor devuelto:</b> ${L.motivo}</p>` : ''}`
+                    : `<p class="sub">Este anticipo aún no tiene una legalización registrada.</p><button class="btn primary" onclick="closeModal('legalizar');openModal('legalizar');document.getElementById('lgAnticipo').value='${a.codigo}'">+ Registrar legalización</button>`}
+ </div></div>`;
+
+            document.getElementById('ffac').innerHTML = L && L.facturas && L.facturas.length ?
+                `<table><thead><tr><th>Documento</th><th>Valor</th><th>Estado</th><th>Motivo</th></tr></thead><tbody>${L.facturas.map(f => {
+                    const cls = f.estado === 'aceptada' ? 'g' : f.estado === 'devuelta' ? 'r' : 'b';
+                    return `<tr><td>${f.doc}</td><td>${money(f.valor)}</td><td><span class="badge ${cls}">${f.estado}</span></td><td>${f.motivo || '—'}</td></tr>`;
+                }).join('')}</tbody></table>` : `<div class="empty">Aún no hay facturas cargadas para este anticipo. Se cargan directamente en SALT.</div>`;
+
+            document.getElementById('farc').innerHTML = `<div class="files">${(L && L.archivos && L.archivos.length ? L.archivos : []).map(f => `<div class="file"><div class="icon">${f.icon}</div><strong>${f.nombre}</strong><small>${f.tipo}</small><button class="btn" onclick="toast('Demo: abrir ${f.nombre}')">Abrir</button></div>`).join('') || '<div class="empty">Sin archivos anexados todavía.</div>'}</div>`;
+
+            document.getElementById('fhis').innerHTML = `<div class="timeline">${eventosDe(a).map(ev => `<div class="event"><b>${ev.tipo}</b><p>${fmtFecha(ev.fecha)} · ${ev.detalle}</p></div>`).join('')}</div>`;
+
+            document.getElementById('frec').innerHTML = (L && L.reclamos && L.reclamos.length) ?
+                L.reclamos.map(r => `<p class="sub">Reclamo asociado: <b>${r.codigo}</b> · ${r.factura} · ${money(r.valor)} · <span class="badge ${r.estado === 'Abierto' ? 'r' : r.estado === 'Resuelto' ? 'g' : 'y'}">${r.estado}</span></p>`).join('') + `<button class="btn primary" onclick="toast('Demo: crear reclamo')">+ Crear reclamo</button>`
+                : `<div class="empty">No hay reclamos asociados a este anticipo.</div><button class="btn primary" style="margin-top:8px" onclick="toast('Demo: crear reclamo')">+ Crear reclamo</button>`;
+
+            showPage('ficha');
+        }
+
+        /* ---------- eventos / historial ---------- */
+        function eventosDe(a) {
+            const ev = [{ fecha: a.fecha, tipo: 'Anticipo registrado', detalle: `${a.codigo} · ${money(a.valor)}`, codigo: a.codigo }];
+            const L = a.legalizacion;
+            if (L) {
+                ev.push({ fecha: L.fechaPresentado, tipo: 'Legalización presentada', detalle: `${L.codigo} · ${money(L.presentado)}`, codigo: a.codigo });
+                if (L.fechaResultado) {
+                    if (L.estado === 'aprobada') ev.push({ fecha: L.fechaResultado, tipo: 'Legalización aprobada', detalle: `${money(L.reconocido)} reconocidos de ${money(a.valor)} anticipados`, codigo: a.codigo });
+                    else if (L.estado === 'parcial') ev.push({ fecha: L.fechaResultado, tipo: 'Aprobada parcialmente', detalle: `${money(L.reconocido)} reconocidos · ${money(L.devuelto)} devueltos · ${L.motivo}`, codigo: a.codigo });
+                    else if (L.estado === 'rechazada') ev.push({ fecha: L.fechaResultado, tipo: 'Legalización rechazada', detalle: `${money(L.devuelto)} devueltos · Motivo: ${L.motivo}`, codigo: a.codigo });
+                }
+                (L.reclamos || []).forEach(r => ev.push({ fecha: L.fechaResultado || L.fechaPresentado, tipo: 'Reclamo registrado', detalle: `${r.codigo} · ${r.factura} · ${money(r.valor)}`, codigo: a.codigo }));
+            }
+            return ev.sort((x, y) => y.fecha.localeCompare(x.fecha));
+        }
+        function renderHistorialGlobal() {
+            let todos = []; ANTICIPOS.forEach(a => todos = todos.concat(eventosDe(a)));
+            todos.sort((x, y) => y.fecha.localeCompare(x.fecha));
+            document.getElementById('histGlobal').innerHTML = todos.map(ev => `<div class="event"><b>${ev.tipo}</b><p>${fmtFecha(ev.fecha)} · <span class="pill">${ev.codigo}</span> ${ev.detalle}</p></div>`).join('');
+        }
+
+        /* ---------- avisos ---------- */
+        function renderAvisos() {
+            let items = [];
+            ANTICIPOS.forEach(a => {
+                const L = a.legalizacion;
+                if (!L) { items.push({ dot: 'b', t: `${a.codigo} sigue pendiente por legalizar`, d: `${money(a.valor)} todavía sin presentar en SALT.`, src: null }); return }
+                if (L.estado === 'revision') { items.push({ dot: 'b', t: `${L.codigo} en espera de respuesta`, d: `Cargada en SALT el ${fmtFecha(L.fechaPresentado)}. Anticipo ${a.codigo}.`, src: null }); return }
+                if (L.estado === 'aprobada') { items.push({ dot: 'g', t: `${L.codigo} aprobada con éxito`, d: `Se legalizaron ${money(L.reconocido)} de ${money(a.valor)} anticipados en ${a.codigo}.`, src: L.origen }); return }
+                if (L.estado === 'parcial') { items.push({ dot: 'y', t: `${L.codigo} aprobada parcialmente`, d: `${money(L.reconocido)} reconocidos, ${money(L.devuelto)} devueltos · Motivo: ${L.motivo}.`, src: L.origen }); return }
+                if (L.estado === 'rechazada') { items.push({ dot: 'r', t: `${L.codigo} fue rechazada`, d: `${money(L.devuelto)} devueltos · Motivo: ${L.motivo} · Anticipo ${a.codigo}.`, src: L.origen }); return }
+            });
+            document.getElementById('avNoti').innerHTML = items.map(n => `<div class="notice"><i class="dot ${n.dot}"></i><div><strong>${n.t}</strong><p>${n.d}</p>${n.src ? `<span class="src">Origen: registro manual</span>` : ''}</div></div>`).join('') || '<div class="empty">No hay avisos.</div>';
+        }
+
+        /* ---------- archivos (página) ---------- */
+        function renderArchivos() {
+            let files = [];
+            ANTICIPOS.forEach(a => { if (a.legalizacion && a.legalizacion.archivos) a.legalizacion.archivos.forEach(f => files.push({ ...f, codigo: a.legalizacion.codigo })) });
+            document.getElementById('archivosGrid').innerHTML = files.map(f => `<div class="file"><div class="icon">${f.icon}</div><strong>${f.nombre}</strong><small>${f.codigo}</small><button class="btn" onclick="toast('Demo: abrir ${f.nombre}')">Abrir</button></div>`).join('') || '<div class="empty">Sin archivos todavía.</div>';
+        }
+
+        /* ---------- selects dinámicos de los modales ---------- */
+        function fillLegalizarSelect() {
+            const sel = document.getElementById('lgAnticipo');
+            sel.innerHTML = ANTICIPOS.filter(a => !a.legalizacion || saldo(a) > 0).map(a => `<option value="${a.codigo}">${a.codigo} · saldo ${money(saldo(a))}</option>`).join('');
+            document.getElementById('lgEstado').value = 'revision'; toggleLegFields();
+            document.getElementById('lgFecha').value = new Date().toISOString().slice(0, 10);
+        }
+        function fillArchivoSelect() {
+            document.getElementById('faAnticipo').innerHTML = ANTICIPOS.map(a => `<option value="${a.codigo}">${a.codigo}${a.legalizacion ? ' · ' + a.legalizacion.codigo : ''}</option>`).join('');
+        }
+        function toggleLegFields() {
+            const v = document.getElementById('lgEstado').value;
+            document.getElementById('lgReconWrap').style.display = v === 'revision' ? 'none' : 'block';
+            document.getElementById('lgMotivoWrap').style.display = (v === 'parcial' || v === 'rechazada') ? 'block' : 'none';
+        }
+
+        /* ---------- guardar (demo, en memoria) ---------- */
+        function guardarAnticipo() {
+            const codigo = document.getElementById('naCodigo').value.trim();
+            const valor = soloNum(document.getElementById('naValor').value);
+            if (!codigo || !valor) { toast('Falta el código o el valor del anticipo'); return }
+            ANTICIPOS.unshift({ codigo, fecha: document.getElementById('naFecha').value || new Date().toISOString().slice(0, 10), responsable: document.getElementById('naResponsable').value || '—', concepto: document.getElementById('naConcepto').value || '—', valor, legalizacion: null });
+            closeModal('nuevo'); toast(`Anticipo ${codigo} guardado por ${money(valor)}`);
+            ['naCodigo', 'naResponsable', 'naConcepto'].forEach(id => document.getElementById(id).value = ''); document.getElementById('naValor').value = '';
+            renderAll();
+        }
+        function guardarLegalizacion() {
+            const antCodigo = document.getElementById('lgAnticipo').value;
+            const a = ANTICIPOS.find(x => x.codigo === antCodigo);
+            const codigo = document.getElementById('lgCodigo').value.trim();
+            const presentadoV = soloNum(document.getElementById('lgPresentado').value);
+            const estado = document.getElementById('lgEstado').value;
+            if (!a || !codigo || !presentadoV) { toast('Completa el anticipo, código y valor presentado'); return }
+            let reconocidoV = 0, devueltoV = 0, motivo = '';
+            if (estado !== 'revision') {
+                reconocidoV = soloNum(document.getElementById('lgReconocido').value);
+                devueltoV = Math.max(0, presentadoV - reconocidoV);
+                motivo = devueltoV > 0 ? document.getElementById('lgMotivo').value : '';
+            }
+            a.legalizacion = { codigo, fechaPresentado: document.getElementById('lgFecha').value || new Date().toISOString().slice(0, 10), presentado: presentadoV, estado, fechaResultado: estado === 'revision' ? null : new Date().toISOString().slice(0, 10), reconocido: reconocidoV, devuelto: devueltoV, motivo, origen: 'manual', facturas: a.legalizacion ? a.legalizacion.facturas : [], archivos: a.legalizacion ? a.legalizacion.archivos : [], reclamos: a.legalizacion ? a.legalizacion.reclamos : [] };
+            closeModal('legalizar');
+            if (estado === 'revision') toast(`Legalización ${codigo} vinculada al anticipo ${antCodigo} · en espera de respuesta en SALT.`);
+            else if (estado === 'aprobada') toast(`✔ ${codigo} aprobada con éxito: se legalizaron ${money(reconocidoV)} de ${money(a.valor)} anticipados en ${antCodigo}.`);
+            else if (estado === 'parcial') toast(`${codigo} aprobada parcialmente: ${money(reconocidoV)} reconocidos, ${money(devueltoV)} devueltos. Motivo: ${motivo}.`);
+            else toast(`✘ ${codigo} fue rechazada: ${money(devueltoV)} devueltos. Motivo: ${motivo}.`);
+            renderAll();
+        }
+        function guardarArchivo() { closeModal('archivo'); toast('Archivo guardado en la demostración'); }
+
+        /* ---------- render general ---------- */
+        function renderAll() { updatePeriod(); renderAnticiposTable(); renderAvisos(); renderHistorialGlobal(); renderArchivos(); if (fichaActual) renderFicha(fichaActual) }
+        renderAll();
+    </script>
 </body>
+
 </html>

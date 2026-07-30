@@ -1,0 +1,1 @@
+console.log("Applus Control iniciado correctamente.");

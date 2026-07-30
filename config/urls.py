@@ -18,8 +18,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from app_applus.views import applus
-
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", applus, name="applus"),
+
+    path("applus/", applus, name="applus"),
 ]
