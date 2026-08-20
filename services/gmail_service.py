@@ -34,7 +34,11 @@ def autenticar():
                 SCOPES
             )
 
-            creds = flow.run_console()
+            creds = flow.run_local_server(
+                port=0
+            )
+
+
         TOKEN.write_text(creds.to_json())
 
     return creds

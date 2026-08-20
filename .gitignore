@@ -17,4 +17,8 @@ db.sqlite3
 Thumbs.db
 
 # Media (si aplica)
-media/
+media/credentials/
+__pycache__/
+*.py[cod]
+.env
+*.sqlite3

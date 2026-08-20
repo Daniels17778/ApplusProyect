@@ -16,10 +16,12 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from app_applus.views import applus
 urlpatterns = [
     path("admin/", admin.site.urls),
 
     path("applus/", applus, name="applus"),
+
+    path("auth/", include("authentication.urls")),  
 ]
