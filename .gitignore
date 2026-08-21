@@ -5,20 +5,21 @@ venv/
 # Variables de entorno
 .env
 
+# Credenciales
+credentials/
+
 # Python
 __pycache__/
 *.pyc
+*.py[cod]
 
 # Base de datos SQLite
 db.sqlite3
+*.sqlite3
 
 # Archivos del sistema
 .DS_Store
 Thumbs.db
 
-# Media (si aplica)
-media/credentials/
-__pycache__/
-*.py[cod]
-.env
-*.sqlite3
+# Media
+media/
