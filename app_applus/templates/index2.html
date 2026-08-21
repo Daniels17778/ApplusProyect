@@ -27,7 +27,8 @@
                 <button onclick="showPage('archivos',this)"><span class="ico">□</span>Archivos</button>
                 <button onclick="showPage('avisos',this)"><span class="ico">!</span>Avisos</button>
             </div>
-            <div class="user"><b>Usuario administrativo</b><br>Control y seguimiento</div>
+            <div class="user"><b>{{ request.user.get_full_name|default:request.user.username }}</b><br>Control y
+                seguimiento · <a href="{% url 'logout' %}" style="color:var(--od)">Cerrar sesión</a></div>
         </aside>
 
         <main>
